@@ -15,30 +15,6 @@ Theme and accent choices are saved locally; typing text and results are not.
 - `npm run test:e2e` — desktop Chromium and iPhone-profile WebKit checks
 - `npm run build` — production build
 
-## Cloudflare deployment
-
-The Wrangler config deploys the built `dist` directory as static assets and
-serves the SPA entry point for unknown paths. Wrangler is installed with the
-project dependencies, so deploy with:
-
-- `npm run deploy:production` — Worker `wordtype`
-- `npm run deploy:develop` — Worker `wordtype-develop`
-
-For Cloudflare Workers Builds, create two Worker projects connected to this
-repository. Set each Worker's production branch and deploy command in its
-Cloudflare dashboard settings:
-
-| Worker project | Production branch | Build command | Deploy command |
-| --- | --- | --- | --- |
-| `wordtype` | `main` | `npm run build` | `npm run deploy:production` |
-| `wordtype-develop` | `develop` | `npm run build` | `npm run deploy:develop` |
-
-Each project must be connected to the matching Worker name. Do not run
-`npm run deploy:develop` from the `wordtype` project's build: Workers Builds
-enforces the name of the Worker connected to that build. If preview builds are
-enabled, use `npx wrangler preview --env production` or
-`npx wrangler preview --env develop` as the respective Preview command.
-
 ### Environment variables
 
 No environment variables are required to install or run the app locally.
