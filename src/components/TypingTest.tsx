@@ -156,9 +156,6 @@ export function TypingTest({ durationSeconds }: TypingTestProps) {
               />
             </div>
 
-            <p className="typing-instructions" id="typing-instructions">
-              Type the words as shown. Backspace corrects a character; pasted text is not counted.
-            </p>
             <button className="restart-button" type="button" onClick={restart}>Restart</button>
           </>
         )}
