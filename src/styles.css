@@ -359,20 +359,32 @@ textarea:focus-visible {
   line-height: 1.5;
 }
 
+.restart-action {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+}
+
 .restart-button {
-  min-width: 100px;
-  min-height: 44px;
-  padding: 9px 18px;
-  border: 1px solid var(--accent);
-  border-radius: 9px;
-  color: var(--surface);
-  background: var(--accent);
+  min-height: 36px;
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--muted);
+  background: transparent;
   cursor: pointer;
-  font-weight: 700;
+  font-size: 0.88rem;
 }
 
 .restart-button:hover {
-  filter: brightness(1.08);
+  color: var(--text);
+  background: var(--surface-alt);
+}
+
+.restart-hint {
+  color: var(--muted);
+  font-size: 0.76rem;
 }
 
 .results-view {

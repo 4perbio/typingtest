@@ -115,7 +115,6 @@ export function TypingTest({ durationSeconds }: TypingTestProps) {
                 <strong>{test.state.durationSeconds}s</strong>
               </div>
             </div>
-            <button className="restart-button" type="button" onClick={restart}>Restart</button>
           </div>
         ) : (
           <>
@@ -156,9 +155,12 @@ export function TypingTest({ durationSeconds }: TypingTestProps) {
               />
             </div>
 
-            <button className="restart-button" type="button" onClick={restart}>Restart</button>
           </>
         )}
+        <div className="restart-action">
+          <button className="restart-button" type="button" onClick={restart}>Restart</button>
+          <span className="restart-hint">Tab; Enter = restart</span>
+        </div>
       </div>
     </section>
   );
