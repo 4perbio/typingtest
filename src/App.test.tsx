@@ -18,14 +18,15 @@ describe('typing test interface', () => {
     const input = screen.getByRole('textbox', { name: /type the passage/i });
     expect(input).toBeInTheDocument();
     expect(input.closest('.passage-wrap')).not.toBeNull();
-    expect(screen.getByRole('button', { name: /30 seconds/i })).toHaveAttribute('aria-pressed', 'true');
-    expect(screen.getByText(/time left/i).parentElement).toHaveTextContent('30');
+    expect(screen.queryByRole('button', { name: /30 seconds/i })).not.toBeInTheDocument();
+    expect(screen.queryByText(/time left/i)).not.toBeInTheDocument();
     const settingsButton = screen.getByRole('button', { name: /settings/i });
     expect(settingsButton).toHaveAttribute('aria-expanded', 'false');
     expect(settingsButton.querySelector('img')).toHaveAttribute('alt', '');
     expect(screen.queryByLabelText(/theme/i)).not.toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: /settings/i }));
     expect(screen.getByLabelText(/theme/i)).toHaveValue('dracula');
+    expect(screen.getByRole('button', { name: /30 seconds/i })).toHaveAttribute('aria-pressed', 'true');
     expect(screen.queryByRole('option', { name: 'Word' })).not.toBeInTheDocument();
     expect(screen.queryByRole('navigation', { name: /decorative document ribbon/i })).not.toBeInTheDocument();
     expect(screen.getAllByRole('textbox', { name: /type the passage/i })).toHaveLength(1);
@@ -84,18 +85,18 @@ describe('typing test interface', () => {
     )).toBe(2);
   });
 
-  it('starts only when accepted input arrives and shows live metrics', async () => {
+  it('starts only when accepted input arrives without showing live metrics', async () => {
     const user = userEvent.setup();
     render(<App />);
     const input = screen.getByRole('textbox', { name: /type the passage/i });
 
-    expect(screen.getByText(/time left/i).parentElement).toHaveTextContent('30');
     await user.type(input, 'the ');
 
     expect(input).toHaveValue('the ');
-    expect(screen.getByText(/attempts/i).parentElement).toHaveTextContent('4');
-    expect(screen.getByText('WPM', { exact: true })).toBeInTheDocument();
-    expect(screen.getByText('Accuracy', { exact: true })).toBeInTheDocument();
+    expect(screen.queryByText(/time left/i)).not.toBeInTheDocument();
+    expect(screen.queryByText('WPM', { exact: true })).not.toBeInTheDocument();
+    expect(screen.queryByText('Accuracy', { exact: true })).not.toBeInTheDocument();
+    expect(screen.queryByText('Attempts', { exact: true })).not.toBeInTheDocument();
   });
 
   it('blocks paste and drop without counting pasted characters', async () => {
@@ -107,7 +108,7 @@ describe('typing test interface', () => {
     await user.paste('pasted text');
 
     expect(input).toHaveValue('');
-    expect(screen.getByText(/attempts/i).parentElement).toHaveTextContent('0');
+    expect(screen.queryByText(/attempts/i)).not.toBeInTheDocument();
   });
 
   it('places Restart directly after the input and Enter restarts once with focus', async () => {
@@ -128,7 +129,7 @@ describe('typing test interface', () => {
     expect(input).toHaveValue('');
     expect(screen.getByRole('group', { name: /passage to type/i })
       .querySelector('.target-passage')?.textContent).not.toBe(passage);
-    expect(screen.getByText(/time left/i).parentElement).toHaveTextContent('30');
+    expect(screen.queryByRole('textbox', { name: /type the passage/i })).toBeInTheDocument();
   });
 
   it('changes themes without losing active text, duration, or progress', async () => {
@@ -136,6 +137,7 @@ describe('typing test interface', () => {
     render(<App />);
     const input = screen.getByRole('textbox', { name: /type the passage/i });
 
+    await user.click(screen.getByRole('button', { name: /settings/i }));
     await user.click(screen.getByRole('button', { name: /60 seconds/i }));
     await user.type(input, 'the');
     const passage = screen.getByRole('group', { name: /passage to type/i })

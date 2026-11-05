@@ -1,7 +1,9 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTypingTest, type TestDuration } from '../hooks/useTypingTest';
 
-const DURATIONS: readonly TestDuration[] = [30, 60, 120];
+interface TypingTestProps {
+  readonly durationSeconds: TestDuration;
+}
 
 interface TargetPassageProps {
   readonly passage: string;
@@ -39,13 +41,40 @@ function TargetPassage({ passage, input }: TargetPassageProps) {
   );
 }
 
-export function TypingTest() {
+export function TypingTest({ durationSeconds }: TypingTestProps) {
   const test = useTypingTest();
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const passageRef = useRef<HTMLDivElement>(null);
+  const resultsHeadingRef = useRef<HTMLHeadingElement>(null);
   const composing = useRef(false);
+  const isFinished = test.state.status === 'finished';
+  const previousFinished = useRef(false);
+  const [modeKey, setModeKey] = useState(0);
   const passage = test.state.target;
   const metrics = test.metrics;
+  const currentDuration = test.state.durationSeconds;
+  const setTestDuration = test.setDuration;
+
+  useEffect(() => {
+    if (durationSeconds !== currentDuration) {
+      setTestDuration(durationSeconds);
+    }
+  }, [currentDuration, durationSeconds, setTestDuration]);
+
+  useEffect(() => {
+    if (previousFinished.current !== isFinished) {
+      previousFinished.current = isFinished;
+      setModeKey((key) => key + 1);
+    }
+  }, [isFinished]);
+
+  useEffect(() => {
+    if (isFinished) {
+      resultsHeadingRef.current?.focus();
+    } else if (modeKey > 0) {
+      inputRef.current?.focus();
+    }
+  }, [isFinished, modeKey]);
 
   useEffect(() => {
     if (!test.inputFocused) return;
@@ -68,93 +97,72 @@ export function TypingTest() {
 
   return (
     <section className="typing-panel">
-      <div className="duration-row" aria-label="Test duration">
-        <span className="control-label">Duration</span>
-        <div className="duration-options">
-          {DURATIONS.map((duration) => (
-            <button
-              key={duration}
-              type="button"
-              aria-pressed={test.state.durationSeconds === duration}
-              onClick={() => test.setDuration(duration)}
+      <div key={modeKey} className="typing-mode">
+        {isFinished ? (
+          <div className="results-view" role="status">
+            <h2 ref={resultsHeadingRef} tabIndex={-1}>Test complete</h2>
+            <div className="result-metrics" role="group" aria-label="Final results">
+              <div className="result-metric">
+                <span>WPM</span>
+                <strong>{metrics.wpm}</strong>
+              </div>
+              <div className="result-metric">
+                <span>Accuracy</span>
+                <strong>{metrics.accuracy}%</strong>
+              </div>
+              <div className="result-metric">
+                <span>Duration</span>
+                <strong>{test.state.durationSeconds}s</strong>
+              </div>
+            </div>
+            <button className="restart-button" type="button" onClick={restart}>Restart</button>
+          </div>
+        ) : (
+          <>
+            <div
+              ref={passageRef}
+              className={`passage-wrap${test.shouldBlurPassage ? ' passage-wrap--blurred' : ''}`}
+              role="group"
+              onClick={focusTyping}
+              aria-label="Passage to type"
             >
-              {duration} seconds
-            </button>
-          ))}
-        </div>
-      </div>
+              <TargetPassage passage={passage} input={test.state.input} />
+              {test.shouldBlurPassage && (
+                <span className="focus-prompt">Focus the typing field to reveal your place</span>
+              )}
+              <label className="visually-hidden" htmlFor="typing-input">Type the passage</label>
+              <textarea
+                ref={inputRef}
+                id="typing-input"
+                className="typing-input"
+                aria-describedby="typing-instructions"
+                value={test.state.input}
+                rows={2}
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="off"
+                spellCheck={false}
+                inputMode="text"
+                onChange={(event) => applyTypedValue(event.currentTarget.value)}
+                onCompositionStart={() => { composing.current = true; }}
+                onCompositionEnd={(event) => {
+                  composing.current = false;
+                  applyTypedValue(event.currentTarget.value);
+                }}
+                onFocus={test.onInputFocus}
+                onBlur={test.onInputBlur}
+                onPaste={(event) => event.preventDefault()}
+                onDrop={(event) => event.preventDefault()}
+              />
+            </div>
 
-      <div className="metrics" aria-label="Typing metrics">
-        <div className="metric">
-          <span className="metric-label">Time left</span>
-          <strong>{test.state.remainingSeconds}<small> s</small></strong>
-        </div>
-        <div className="metric">
-          <span className="metric-label">WPM</span>
-          <strong>{metrics.wpm}<small> wpm</small></strong>
-        </div>
-        <div className="metric">
-          <span className="metric-label">Accuracy</span>
-          <strong>{metrics.accuracy}<small>%</small></strong>
-        </div>
-        <div className="metric">
-          <span className="metric-label">Attempts</span>
-          <strong>{metrics.attempts}<small> chars</small></strong>
-        </div>
-      </div>
-
-      <div
-        ref={passageRef}
-        className={`passage-wrap${test.shouldBlurPassage ? ' passage-wrap--blurred' : ''}`}
-        role="group"
-        onClick={focusTyping}
-        aria-label="Passage to type"
-      >
-        <TargetPassage passage={passage} input={test.state.input} />
-        {test.shouldBlurPassage && (
-          <span className="focus-prompt">Focus the typing field to reveal your place</span>
+            <p className="typing-instructions" id="typing-instructions">
+              Type the words as shown. Backspace corrects a character; pasted text is not counted.
+            </p>
+            <button className="restart-button" type="button" onClick={restart}>Restart</button>
+          </>
         )}
-        <label className="visually-hidden" htmlFor="typing-input">Type the passage</label>
-        <textarea
-          ref={inputRef}
-          id="typing-input"
-          className="typing-input"
-          aria-describedby="typing-instructions"
-          value={test.state.input}
-          rows={2}
-          autoComplete="off"
-          autoCorrect="off"
-          autoCapitalize="off"
-          spellCheck={false}
-          inputMode="text"
-          readOnly={test.state.status === 'finished'}
-          onChange={(event) => applyTypedValue(event.currentTarget.value)}
-          onCompositionStart={() => { composing.current = true; }}
-          onCompositionEnd={(event) => {
-            composing.current = false;
-            applyTypedValue(event.currentTarget.value);
-          }}
-          onFocus={test.onInputFocus}
-          onBlur={test.onInputBlur}
-          onPaste={(event) => event.preventDefault()}
-          onDrop={(event) => event.preventDefault()}
-        />
       </div>
-
-      <p className="typing-instructions" id="typing-instructions">
-        Type the words as shown. Backspace corrects a character; pasted text is not counted.
-      </p>
-      <button className="restart-button" type="button" onClick={restart}>Restart</button>
-
-      {test.state.status === 'finished' && (
-        <div className="completion" role="status">
-          <h2>Test complete</h2>
-          <p>
-            Final result: <strong>{metrics.wpm} WPM</strong> at{' '}
-            <strong>{metrics.accuracy}% accuracy</strong>.
-          </p>
-        </div>
-      )}
     </section>
   );
 }

@@ -7,25 +7,38 @@ test('types, finishes, and restarts from the keyboard', async ({ page }) => {
   const restart = page.getByRole('button', { name: 'Restart' });
 
   await input.fill('a');
+  await expect(page.getByText('WPM', { exact: true })).toHaveCount(0);
+  await expect(page.getByText('Accuracy', { exact: true })).toHaveCount(0);
   await page.clock.fastForward(30_000);
   await expect(page.getByRole('heading', { name: 'Test complete' })).toBeVisible();
-  await expect(input).toHaveAttribute('readonly', '');
+  await expect(page.getByRole('group', { name: 'Final results' })).toBeVisible();
+  await expect(page.locator('.result-metric')).toHaveCount(3);
+  await expect(page.getByText('30s', { exact: true })).toBeVisible();
+  await expect(page.getByText('Attempts', { exact: true })).toHaveCount(0);
+  await expect(page.getByRole('textbox', { name: 'Type the passage' })).toHaveCount(0);
+  expect(await page.locator('.typing-mode').evaluate((element) =>
+    getComputedStyle(element).animationName,
+  )).toBe('typing-mode-enter');
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  expect(parseFloat(await page.locator('.typing-mode').evaluate((element) =>
+    getComputedStyle(element).animationDuration,
+  ))).toBeLessThan(0.001);
 
-  await input.focus();
+  await expect(page.getByRole('heading', { name: 'Test complete' })).toBeFocused();
   await page.keyboard.press('Tab');
   await expect(restart).toBeFocused();
   await page.keyboard.press('Enter');
-  await expect(input).toBeFocused();
-  await expect(input).toHaveValue('');
-  await expect(page.locator('.metric').filter({ hasText: 'Time left' })).toContainText('30');
+  await expect(page.getByRole('textbox', { name: 'Type the passage' })).toBeFocused();
+  await expect(restart).toBeVisible();
+  await expect(page.getByRole('group', { name: 'Final results' })).toHaveCount(0);
 });
 
 test('preserves active typing when switching themes and persists appearance', async ({ page }) => {
   await page.goto('/');
+  await page.getByRole('button', { name: 'Settings' }).click();
   await page.getByRole('button', { name: '60 seconds' }).click();
   const input = page.getByRole('textbox', { name: 'Type the passage' });
   await input.fill('x');
-  await page.getByRole('button', { name: 'Settings' }).click();
   await page.getByLabel('Theme').selectOption('dracula');
 
   await expect(input).toHaveValue('x');
@@ -141,6 +154,7 @@ test('visual focus prompt tracks input blur and hidden document state', async ({
     document.dispatchEvent(new Event('visibilitychange'));
   });
   await expect(page.getByText('Focus the typing field to reveal your place')).toBeVisible();
+  await expect(page.getByText('Time left', { exact: true })).toHaveCount(0);
   const promptPosition = await page.getByText('Focus the typing field to reveal your place').boundingBox();
   const passagePosition = await page.getByRole('group', { name: 'Passage to type' }).boundingBox();
   expect(promptPosition).not.toBeNull();
@@ -152,7 +166,7 @@ test('visual focus prompt tracks input blur and hidden document state', async ({
     promptPosition!.y + promptPosition!.height / 2 - passagePosition!.y - passagePosition!.height / 2,
   )).toBeLessThan(1);
   await page.waitForTimeout(1_100);
-  await expect(page.getByText('Time left').locator('..').locator('strong')).not.toHaveText('30 s');
+  await expect(page.getByText('Focus the typing field to reveal your place')).toBeVisible();
   await page.evaluate(() => {
     Object.defineProperty(document, 'hidden', { configurable: true, value: false });
     document.dispatchEvent(new Event('visibilitychange'));

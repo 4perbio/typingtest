@@ -15,9 +15,17 @@ Theme and accent choices are saved locally; typing text and results are not.
 - `npm run test:e2e` — desktop Chromium and iPhone-profile WebKit checks
 - `npm run build` — production build
 
-Set `VITE_SITE_URL` to the production origin when the public domain differs from
-`https://wordtype.perezrubio.dev`; the value is used for canonical, social, and
-structured-data URLs.
+### Environment variables
+
+No environment variables are required to install or run the app locally.
+Optionally, set `VITE_SITE_URL` to the public site origin if it differs from
+`https://wordtype.perezrubio.dev`. This value is used for canonical, social,
+and structured-data URLs. For example, create a `.env` file in the project
+root:
+
+```dotenv
+VITE_SITE_URL=https://example.com
+```
 
 The mobile Playwright profile checks a narrow viewport and touch-oriented
 browser emulation. It does not replace testing with a physical phone and its

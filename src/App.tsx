@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { ThemePicker } from './components/ThemePicker';
 import { TypingTest } from './components/TypingTest';
+import type { TestDuration } from './hooks/useTypingTest';
 import {
   DEFAULT_PREFERENCES,
   getAccent,
@@ -30,6 +31,7 @@ export default function App() {
   const [preferences, setPreferences] = useState(loadInitialPreferences);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(true);
+  const [durationSeconds, setDurationSeconds] = useState<TestDuration>(30);
   const settingsRef = useRef<HTMLDivElement>(null);
   const settingsButtonRef = useRef<HTMLButtonElement>(null);
   const theme = getTheme(preferences.themeId);
@@ -112,13 +114,15 @@ export default function App() {
                   <ThemePicker
                     themeId={theme.id}
                     accentId={accent.id}
+                    durationSeconds={durationSeconds}
                     onThemeChange={changeTheme}
                     onAccentChange={changeAccent}
+                    onDurationChange={setDurationSeconds}
                   />
                 </div>
               )}
-            </div>
-            <TypingTest />
+              </div>
+              <TypingTest durationSeconds={durationSeconds} />
           </div>
         </div>
         <section className="seo-copy" aria-labelledby="typing-test-intro">
