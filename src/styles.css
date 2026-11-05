@@ -142,12 +142,10 @@ textarea:focus-visible {
 }
 
 .appearance {
-  display: flex;
-  align-items: end;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 18px 26px;
-  padding: 18px 0 22px;
+  display: grid;
+  justify-content: stretch;
+  gap: 18px;
+  padding: 0;
 }
 
 .theme-select {
@@ -173,6 +171,20 @@ textarea:focus-visible {
   margin: 0;
   padding: 0;
   border: 0;
+}
+
+.duration-picker {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.duration-picker legend {
+  margin-bottom: 6px;
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 700;
 }
 
 .accent-picker legend {
@@ -222,19 +234,6 @@ textarea:focus-visible {
   padding: clamp(18px, 4vw, 32px);
 }
 
-.duration-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 10px 16px;
-}
-
-.control-label {
-  color: var(--muted);
-  font-size: 0.85rem;
-  font-weight: 700;
-}
-
 .duration-options button {
   min-height: 44px;
   padding: 8px 13px;
@@ -250,44 +249,6 @@ textarea:focus-visible {
   border-color: var(--accent);
   background: color-mix(in srgb, var(--accent) 10%, var(--surface));
   font-weight: 700;
-}
-
-.metrics {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 10px;
-  margin: 26px 0 20px;
-}
-
-.metric {
-  min-width: 0;
-  padding: 12px 10px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: var(--surface-alt);
-}
-
-.metric-label,
-.metric strong {
-  display: block;
-}
-
-.metric-label {
-  margin-bottom: 5px;
-  color: var(--muted);
-  font-size: 0.76rem;
-  font-weight: 700;
-}
-
-.metric strong {
-  font-size: clamp(1.1rem, 3vw, 1.45rem);
-  font-variant-numeric: tabular-nums;
-}
-
-.metric strong small {
-  color: var(--muted);
-  font-size: 0.66rem;
-  font-weight: 500;
 }
 
 .passage-wrap {
@@ -414,7 +375,7 @@ textarea:focus-visible {
   filter: brightness(1.08);
 }
 
-.completion {
+.results-view {
   margin-top: 20px;
   padding: 16px 18px;
   border-radius: 10px;
@@ -422,15 +383,48 @@ textarea:focus-visible {
   border-left: 4px solid var(--accent);
 }
 
-.completion h2 {
+.results-view h2 {
   margin: 0 0 5px;
   font-size: 1.08rem;
 }
 
-.completion p {
-  margin: 0;
+.result-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 18px 0;
+}
+
+.result-metric {
+  display: grid;
+  gap: 5px;
+}
+
+.result-metric span {
   color: var(--muted);
-  line-height: 1.55;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.result-metric strong {
+  font-size: clamp(1.1rem, 3vw, 1.45rem);
+  font-variant-numeric: tabular-nums;
+}
+
+.typing-mode {
+  animation: typing-mode-enter 280ms ease both;
+}
+
+@keyframes typing-mode-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .app-footer {
@@ -551,12 +545,6 @@ textarea:focus-visible {
     width: min(100%, 800px);
   }
 
-  .settings-panel .appearance {
-    align-items: stretch;
-    justify-content: flex-start;
-    gap: 12px;
-  }
-
   .accent-picker {
     width: 100%;
   }
@@ -572,9 +560,8 @@ textarea:focus-visible {
     font-size: 0.78rem;
   }
 
-  .metrics {
+  .result-metrics {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    margin: 20px 0 15px;
   }
 
   .passage-wrap {

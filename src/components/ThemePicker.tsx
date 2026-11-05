@@ -1,18 +1,25 @@
 import type { CSSProperties } from 'react';
+import type { TestDuration } from '../hooks/useTypingTest';
 import { getAccent, getTheme, THEMES } from '../themes';
 
 interface ThemePickerProps {
   readonly themeId: string;
   readonly accentId: string;
+  readonly durationSeconds: TestDuration;
   readonly onThemeChange: (themeId: string) => void;
   readonly onAccentChange: (accentId: string) => void;
+  readonly onDurationChange: (duration: TestDuration) => void;
 }
+
+const DURATIONS: readonly TestDuration[] = [30, 60, 120];
 
 export function ThemePicker({
   themeId,
   accentId,
+  durationSeconds,
   onThemeChange,
   onAccentChange,
+  onDurationChange,
 }: ThemePickerProps) {
   const theme = getTheme(themeId);
   const activeAccent = getAccent(theme, accentId);
@@ -27,6 +34,21 @@ export function ThemePicker({
           ))}
         </select>
       </label>
+      <fieldset className="duration-picker">
+        <legend>Test duration</legend>
+        <div className="duration-options">
+          {DURATIONS.map((duration) => (
+            <button
+              key={duration}
+              type="button"
+              aria-pressed={durationSeconds === duration}
+              onClick={() => onDurationChange(duration)}
+            >
+              {duration} seconds
+            </button>
+          ))}
+        </div>
+      </fieldset>
       <fieldset className="accent-picker">
         <legend>Accent color</legend>
         <div className="accent-options">
