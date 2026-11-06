@@ -1,5 +1,5 @@
 export type TestStatus = 'ready' | 'running' | 'finished';
-export type TestDuration = 30 | 60 | 120;
+export type TestDuration = number;
 
 export interface TypingState {
   readonly target: string;
@@ -54,7 +54,9 @@ export function applyInput(state: TypingState, nextInput: string, now: number): 
     character === state.target[state.input.length + index],
   ).length;
   const startedAt = state.startedAt ?? now;
-  const deadline = state.deadline ?? startedAt + state.durationSeconds * 1_000;
+  const deadline = state.durationSeconds === 0
+    ? null
+    : state.deadline ?? startedAt + state.durationSeconds * 1_000;
 
   return {
     ...state,
@@ -68,7 +70,11 @@ export function applyInput(state: TypingState, nextInput: string, now: number): 
 }
 
 export function reconcileDeadline(state: TypingState, now: number): TypingState {
-  if (state.status !== 'running' || state.startedAt === null || state.deadline === null) return state;
+  if (state.status !== 'running' || state.startedAt === null) return state;
+  if (state.durationSeconds === 0) {
+    return { ...state, elapsedMs: Math.max(state.elapsedMs, now - state.startedAt) };
+  }
+  if (state.deadline === null) return state;
   if (now >= state.deadline) {
     return {
       ...state,

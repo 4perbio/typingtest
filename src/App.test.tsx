@@ -18,7 +18,7 @@ describe('typing test interface', () => {
     const input = screen.getByRole('textbox', { name: /type the passage/i });
     expect(input).toBeInTheDocument();
     expect(input.closest('.passage-wrap')).not.toBeNull();
-    expect(screen.queryByRole('button', { name: /30 seconds/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('slider', { name: /test duration/i })).not.toBeInTheDocument();
     expect(screen.queryByText(/time left/i)).not.toBeInTheDocument();
     const settingsButton = screen.getByRole('button', { name: /settings/i });
     expect(settingsButton).toHaveAttribute('aria-expanded', 'false');
@@ -26,7 +26,8 @@ describe('typing test interface', () => {
     expect(screen.queryByLabelText(/theme/i)).not.toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: /settings/i }));
     expect(screen.getByLabelText(/theme/i)).toHaveValue('dracula');
-    expect(screen.getByRole('button', { name: /30 seconds/i })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('slider', { name: /test duration/i })).toHaveValue('30');
+    expect(screen.getByText('30 seconds')).toBeInTheDocument();
     expect(screen.queryByRole('option', { name: 'Word' })).not.toBeInTheDocument();
     expect(screen.queryByRole('navigation', { name: /decorative document ribbon/i })).not.toBeInTheDocument();
     expect(screen.getAllByRole('textbox', { name: /type the passage/i })).toHaveLength(1);
@@ -58,7 +59,7 @@ describe('typing test interface', () => {
       name: /simple typing test for fun and focused practice/i,
     });
     expect(sectionTitle).toHaveClass('visually-hidden');
-    expect(screen.getByText(/30-, 60-, or 120-second session/i)).toBeInTheDocument();
+    expect(screen.getByText(/choose a session from 0 to 60 seconds/i)).toBeInTheDocument();
     expect(screen.getByText(/does not record audio/i)).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /give us feedback/i }))
       .toHaveAttribute('href', 'https://perezrubio.dev');
@@ -111,6 +112,28 @@ describe('typing test interface', () => {
     expect(screen.queryByText(/attempts/i)).not.toBeInTheDocument();
   });
 
+  it('marks common duration stops and snaps pointer adjustments to them', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await user.click(screen.getByRole('button', { name: /settings/i }));
+    const slider = screen.getByRole('slider', { name: /test duration/i });
+
+    expect(screen.getByText('Infinite')).toBeInTheDocument();
+    expect(screen.getByText('15', { selector: '.duration-marks span' })).toBeInTheDocument();
+    for (const [nearStop, stop] of [[14, 15], [29, 30], [44, 45]]) {
+      fireEvent.pointerDown(slider);
+      fireEvent.change(slider, { target: { value: String(nearStop) } });
+      expect(slider).toHaveValue(String(stop));
+      expect(screen.getByText(`${stop} seconds`)).toBeInTheDocument();
+      fireEvent.pointerUp(slider);
+    }
+    expect(slider).toHaveAttribute('step', '1');
+    fireEvent.change(slider, { target: { value: '29' } });
+
+    expect(slider).toHaveValue('29');
+    expect(screen.getByText('29 seconds')).toBeInTheDocument();
+  });
+
   it('places Restart directly after the input and Enter restarts once with focus', async () => {
     const user = userEvent.setup();
     render(<App />);
@@ -138,7 +161,9 @@ describe('typing test interface', () => {
     const input = screen.getByRole('textbox', { name: /type the passage/i });
 
     await user.click(screen.getByRole('button', { name: /settings/i }));
-    await user.click(screen.getByRole('button', { name: /60 seconds/i }));
+    fireEvent.change(screen.getByRole('slider', { name: /test duration/i }), {
+      target: { value: '60' },
+    });
     await user.type(input, 'the');
     const passage = screen.getByRole('group', { name: /passage to type/i })
       .querySelector('.target-passage')?.textContent;
@@ -149,7 +174,7 @@ describe('typing test interface', () => {
     expect(input).toHaveValue('the');
     expect(screen.getByRole('group', { name: /passage to type/i })
       .querySelector('.target-passage')?.textContent).toBe(passage);
-    expect(screen.getByRole('button', { name: /60 seconds/i })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('slider', { name: /test duration/i })).toHaveValue('60');
     expect(screen.getByRole('button', { name: /purple/i })).toBeInTheDocument();
   });
 

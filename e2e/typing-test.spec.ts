@@ -36,7 +36,10 @@ test('types, finishes, and restarts from the keyboard', async ({ page }) => {
 test('preserves active typing when switching themes and persists appearance', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'Settings' }).click();
-  await page.getByRole('button', { name: '60 seconds' }).click();
+  const durationSlider = page.getByRole('slider', { name: 'Test duration' });
+  await durationSlider.focus();
+  await page.keyboard.press('End');
+  await expect(durationSlider).toHaveValue('60');
   const input = page.getByRole('textbox', { name: 'Type the passage' });
   await input.fill('x');
   await page.getByLabel('Theme').selectOption('dracula');
@@ -49,6 +52,23 @@ test('preserves active typing when switching themes and persists appearance', as
   await page.getByRole('button', { name: 'Settings' }).click();
   await expect(page.getByLabel('Theme')).toHaveValue('dracula');
   await expect(page.getByRole('button', { name: 'Pink' })).toHaveAttribute('aria-pressed', 'true');
+});
+
+test('infinite mode does not time out', async ({ page }) => {
+  await page.clock.install();
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Settings' }).click();
+  const durationSlider = page.getByRole('slider', { name: 'Test duration' });
+  await durationSlider.focus();
+  await page.keyboard.press('Home');
+  await expect(durationSlider).toHaveAttribute('aria-valuetext', 'Infinite');
+
+  const input = page.getByRole('textbox', { name: 'Type the passage' });
+  await input.fill('a');
+  await page.clock.fastForward(65_000);
+
+  await expect(input).toHaveValue('a');
+  await expect(page.getByRole('heading', { name: 'Test complete' })).toHaveCount(0);
 });
 
 test('keeps the typing-to-restart tab route and layout within a narrow viewport', async ({ page }) => {
@@ -265,21 +285,15 @@ test('passage input overlays the surface and wraps whole words with a precise sp
   expect(dimensions.page).toBeLessThanOrEqual(dimensions.viewport);
 });
 
-test('duration, theme, and accent options retain visible button surfaces', async ({ page }) => {
+test('duration slider, theme, and accent controls are visible', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'Settings' }).click();
-  const optionControls = [
-    page.getByRole('button', { name: '30 seconds' }),
-    page.getByLabel('Theme'),
-    page.getByRole('button', { name: 'Purple' }),
-  ];
-
-  for (const control of optionControls) {
-    const styles = await control.evaluate((element) => {
-      const style = getComputedStyle(element);
-      return { background: style.backgroundColor, border: style.borderWidth };
-    });
-    expect(styles.background).not.toBe('rgba(0, 0, 0, 0)');
-    expect(styles.border).not.toBe('0px');
-  }
+  const durationSlider = page.getByRole('slider', { name: 'Test duration' });
+  await expect(durationSlider).toBeVisible();
+  await expect(durationSlider).toHaveValue('30');
+  await durationSlider.focus();
+  await page.keyboard.press('ArrowRight');
+  await expect(durationSlider).toHaveValue('31');
+  await expect(page.getByLabel('Theme')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Purple' })).toBeVisible();
 });

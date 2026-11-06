@@ -66,7 +66,7 @@ export function useTypingTest({ initialText, textFactory = generatePassage }: Us
   }, [makeNewState]);
 
   const setDuration = useCallback((durationSeconds: TestDuration) => {
-    if (![30, 60, 120].includes(durationSeconds)) return;
+    if (!Number.isInteger(durationSeconds) || durationSeconds < 0 || durationSeconds > 60) return;
     setState(makeNewState(durationSeconds));
   }, [makeNewState]);
 

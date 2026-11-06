@@ -60,6 +60,18 @@ describe('typing score and state helpers', () => {
     expect(applyInput(finished, 'ab', 32_000)).toEqual(finished);
   });
 
+  it('keeps an infinite test running and tracks elapsed time without a deadline', () => {
+    const started = applyInput(createTypingState('abc', 0), 'a', 1_000);
+    const reconciled = reconcileDeadline(started, 91_000);
+
+    expect(started.deadline).toBeNull();
+    expect(reconciled.status).toBe('running');
+    expect(reconciled.deadline).toBeNull();
+    expect(reconciled.elapsedMs).toBe(90_000);
+    expect(reconciled.remainingSeconds).toBe(0);
+    expect(applyInput(reconciled, 'ab', 92_000).input).toBe('ab');
+  });
+
   it('keeps elapsed time monotonic before expiry', () => {
     const started = applyInput(createTypingState('abc', 30), 'a', 1_000);
     const reconciled = reconcileDeadline(started, 2_250);

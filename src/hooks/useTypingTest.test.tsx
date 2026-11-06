@@ -19,6 +19,21 @@ describe('useTypingTest timing lifecycle', () => {
     expect(result.current.state.input).toBe('a');
   });
 
+  it('keeps an infinite test running after a minute', () => {
+    vi.useFakeTimers();
+    const { result } = renderHook(() => useTypingTest({ initialText: 'abc' }));
+
+    act(() => result.current.setDuration(0));
+    act(() => result.current.handleInput('a'));
+    act(() => vi.advanceTimersByTime(60_000));
+
+    expect(result.current.state.status).toBe('running');
+    expect(result.current.state.deadline).toBeNull();
+    expect(result.current.state.elapsedMs).toBe(60_000);
+    act(() => result.current.handleInput('ab'));
+    expect(result.current.state.input).toBe('ab');
+  });
+
   it('resets with a new passage on duration change and restart', () => {
     const { result } = renderHook(() => useTypingTest({ initialText: 'first', textFactory: () => 'second' }));
 

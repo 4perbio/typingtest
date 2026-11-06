@@ -130,9 +130,9 @@ export default function App() {
             A simple typing test for fun and focused practice
           </h2>
           <p>
-            Choose a 30-, 60-, or 120-second session, type the passage shown, and follow your
-            words per minute (WPM) and accuracy as you go. Pick a theme and accent color to
-            make the page your own.
+            Choose a session from 0 to 60 seconds, or select Infinite for untimed practice.
+            Type the passage shown and follow your words per minute (WPM) and accuracy as you
+            go. Pick a theme and accent color to make the page your own.
           </p>
           <p>
             Looking for a minimal typing test for fun, or a quiet screen while you record your
