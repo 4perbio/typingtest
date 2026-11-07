@@ -62,8 +62,8 @@ export function ThemePicker({
             aria-describedby="duration-guidance"
             onChange={(event) => changeDuration(event.currentTarget.value)}
             onPointerDown={() => { pointerAdjustingDuration.current = true; }}
-            onPointerUp={() => { pointerAdjustingDuration.current = false; }}
-            onPointerCancel={() => { pointerAdjustingDuration.current = false; }}
+            onPointerUp={(event) => changeDuration(event.currentTarget.value)}
+            onKeyDown={() => { pointerAdjustingDuration.current = false; }}
           />
           <div className="duration-marks" aria-hidden="true">
             {DURATION_STOPS.map((stop) => (

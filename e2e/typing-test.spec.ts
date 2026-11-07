@@ -294,6 +294,19 @@ test('duration slider, theme, and accent controls are visible', async ({ page })
   await durationSlider.focus();
   await page.keyboard.press('ArrowRight');
   await expect(durationSlider).toHaveValue('31');
+  const sliderBounds = await durationSlider.boundingBox();
+  if (!sliderBounds) throw new Error('Duration slider has no bounding box');
+  const snapPosition = sliderBounds.x + 8 + ((sliderBounds.width - 16) * 29) / 60;
+  await page.mouse.move(snapPosition, sliderBounds.y + sliderBounds.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(snapPosition + 1, sliderBounds.y + sliderBounds.height / 2);
+  await page.mouse.up();
+  await expect(durationSlider).toHaveValue('30');
+  const markerBounds = await page.locator('.duration-marks span').nth(1).boundingBox();
+  if (!markerBounds) throw new Error('15-second marker has no bounding box');
+  expect(Math.abs(
+    markerBounds.x + markerBounds.width / 2 - (sliderBounds.x + 8 + (sliderBounds.width - 16) / 4),
+  )).toBeLessThan(1);
   await expect(page.getByLabel('Theme')).toBeVisible();
   await expect(page.getByRole('button', { name: 'Purple' })).toBeVisible();
 });

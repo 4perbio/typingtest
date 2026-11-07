@@ -125,9 +125,12 @@ describe('typing test interface', () => {
       fireEvent.change(slider, { target: { value: String(nearStop) } });
       expect(slider).toHaveValue(String(stop));
       expect(screen.getByText(`${stop} seconds`)).toBeInTheDocument();
-      fireEvent.pointerUp(slider);
+      fireEvent.pointerUp(slider, { target: { value: String(nearStop) } });
+      fireEvent.change(slider, { target: { value: String(nearStop) } });
+      expect(slider).toHaveValue(String(stop));
     }
     expect(slider).toHaveAttribute('step', '1');
+    fireEvent.keyDown(slider, { key: 'ArrowDown' });
     fireEvent.change(slider, { target: { value: '29' } });
 
     expect(slider).toHaveValue('29');
